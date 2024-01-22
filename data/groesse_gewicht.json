@@ -1,0 +1,12 @@
+var Daten = [ 165, 182, 177, 175, 169, 190, 185, 173, 180 ];
+
+var Daten2 = [ 65, 80, 77, 78, 70, 88, 83, 72, 80 ];
+
+var Meta = {  
+		"Titel" : "Größe und Gewicht", 
+		"Quelle" : StochastikQuellen.Monka,
+                "MerkmalX" : "Größe in cm",
+                "MerkmalY" : "Gewicht in kg",
+		"csv" : "groesse_gewicht.csv", "json" : "groesse_gewicht.json",
+		"Text" : "In einer zufälligen Stichprobe wurden für 9 Erwachsene die Körpergröße in cm und das Körpergewicht in kg erfasst."
+};

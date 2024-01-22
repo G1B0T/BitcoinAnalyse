@@ -1,0 +1,11 @@
+//
+// JSON "Lieferzeiten"
+// 
+var Daten = [4, 5, 4, 1, 5, 4, 3, 4, 5, 6, 6, 5, 5, 4, 7, 4, 6, 5, 6, 4, 5, 4, 7, 5, 5, 6, 7, 3, 7, 6, 6, 7, 4, 5, 4, 7, 7, 5, 5, 5, 5, 6, 6, 4, 5, 2, 5, 4, 7, 5];
+
+var Meta = {  
+		"Titel" : "Lieferzeiten", 
+		"Quelle" : StochastikQuellen.Bamberg,
+		"csv" : "lieferzeiten.csv", 
+		"json" : "lieferzeiten.json",
+		"Text" : "Die letzten 50 Lieferungen eines Lieferanten hatten die folgenden Lieferzeiten in Tagen:"}

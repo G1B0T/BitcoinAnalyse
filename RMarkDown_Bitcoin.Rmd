@@ -1,0 +1,116 @@
+---
+title: "Bitcoin_Analyse"
+author: "Artur Gibert und Joshua Reumann"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(MASS)
+library(RColorBrewer)
+library(readr)
+library(dygraphs)
+library(lubridate)
+library(data.table)
+library(dplyr)
+library(kableExtra)
+library(DT)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r Datensatz einlesen und Spalten umbenennen, echo=FALSE}
+bitcoin <- fread("C:/Users/giber/OneDrive/Documents/VDA/Bitcoin prices.csv")
+tweetcount_per_price <- readRDS("C:/Users/giber/OneDrive/Documents/VDA/tweetcount_per_price.rds")
+names(bitcoin) <- c("Datum","Open","High","Low","Close","ADJ.Close","Handelsvolumen")
+bitcoin$Datum <- as.Date(bitcoin$Datum, format = "%Y-%m-%d")
+tweetcount_per_price %>% datatable()
+```
+```{r bitcoin, echo=TRUE}
+# Extrahieren der Spalten "Datum", "High" und "Low"
+date_high_low_data <- bitcoin[, c("Datum", "High", "Low")]
+
+# Erstellen eines Dygraph-Diagramm mit Datum auf der X-Achse
+dygraph(date_high_low_data, main = "Bitcoin High and Low Prices",
+        x = "Datum",y="Preis in $") %>%
+  dySeries("High", label = "High") %>%
+  dySeries("Low", label = "Low") %>%
+  dyOptions(colors = c("green", "red")) %>%
+  dyShading(from ="2016-07-08",to = "2016-07-10", color = "yellow", axis = "x") %>%
+  dyShading(from ="2020-05-17",to = "2020-05-19", color = "yellow", axis = "x") %>%
+  dyEvent("2016-07-09", "2.Halving", labelLoc = "bottom") %>%
+  dyEvent("2020-05-18", "3.Halving", labelLoc = "bottom")
+
+dygraph(date_high_low_data, main = "Bitcoin High and Low Prices", x = "Datum", y = "Preis in $") %>%
+  dySeries("High", label = "High") %>%
+  dySeries("Low", label = "Low") %>%
+  dyOptions(colors = c("green", "red")) %>%
+  dyShading(from = "2016-07-08", to = "2016-07-10", color = "yellow", axis = "x") %>%
+  dyShading(from = "2020-05-17", to = "2020-05-19", color = "yellow", axis = "x") %>%
+  dyEvent("2016-07-09", "2.Halving", labelLoc = "bottom") %>%
+  dyEvent("2020-05-18", "3.Halving", labelLoc = "bottom") %>%
+  dyAxis("y", logscale = TRUE)
+```
+```{r name="bull and bearmarket", echo=TRUE}
+# Extrahieren der Spalten "Datum", "High" und "Low"
+date_high_low_data <- bitcoin[, c("Datum", "High", "Low")]
+
+# Erstellen eines Dygraph-Diagramm mit Datum auf der X-Achse
+dygraph(date_high_low_data, main = "Bitcoin Bull and Bearmarket",
+        x = "Datum",y="Preis in $") %>%
+  dySeries("High", label = "High") %>%
+  dySeries("Low", label = "Low") %>%
+  dyOptions(colors = c("green", "red","lightgreen","orange")) %>%
+  dyShading(from ="2016-07-08",to = "2016-07-10", color = "yellow", axis = "x") %>%
+  dyShading(from ="2020-05-17",to = "2020-05-19", color = "yellow", axis = "x") %>%
+  dyEvent("2016-07-09", "2.Halving", labelLoc = "bottom") %>%
+  dyEvent("2020-05-18", "3.Halving", labelLoc = "bottom") %>%
+  dyShading(from ="2015-01-14",to = "2017-12-17", color = "lightgreen", axis = "x") %>%
+  dyShading(from ="2017-12-18",to = "2018-12-15", color = "orange", axis = "x") %>%
+  dyShading(from ="2018-12-16",to = "2021-11-09", color = "lightgreen", axis = "x") %>%
+  dyShading(from ="2021-11-10",to = "2022-11-09", color = "orange", axis = "x") %>%
+  dyShading(from ="2022-11-10",to = "2023-04-09", color = "lightgreen", axis = "x") 
+
+```
+```{r tweetanalyse, echo=FALSE}
+
+
+# Extrahieren der Spalten "Datum", "High" und "Low"
+date_high_tweet_data <- tweetcount_per_price[, c("Datum", "Low", "Anzahl")]
+
+# Monatsspalte hinzufügen
+date_high_tweet_data <- date_high_tweet_data %>%
+  mutate(Monat = format(Datum, "%Y-%m"))
+
+# Durchschnitt für jeden Monat berechnen
+ergebnis <- date_high_tweet_data %>%
+  group_by(Monat) %>%
+  summarize(Durchschnitt_Preis = mean(Low),
+            Durchschnitt_Anzahl = mean(Anzahl))
+
+# Plot erstellen
+ggplot(ergebnis) +
+  geom_bar(aes(x = Monat, y = Durchschnitt_Preis, fill = "Durchschnittspreis"), stat = "identity",width = 0.5, position = "dodge") +
+  geom_bar(aes(x = Monat, y = Durchschnitt_Anzahl, fill = "Durchschnittsanzahl"), stat = "identity", width = 0.25, position = "dodge") +
+  labs(x = "Monat", y = "Durchschnittswerte", fill = "Variable") +
+  scale_fill_manual(values = c("Durchschnittspreis" = "gold", "Durchschnittsanzahl" = "blue")) +
+  theme(legend.position = "top")
+
+# Korrelation berechnen
+korrelation <- cor(ergebnis$Durchschnitt_Preis, ergebnis$Durchschnitt_Anzahl)
+
+ggplot(ergebnis, aes(x = Durchschnitt_Preis, y = Durchschnitt_Anzahl)) +
+  geom_point() +
+  labs(x = "Durchschnittspreis", y = "Durchschnittsanzahl") +
+  annotate("text", x = min(ergebnis$Durchschnitt_Preis), y = max(ergebnis$Durchschnitt_Anzahl),
+           label = paste("Korrelation:", round(korrelation, 5)), hjust = 0, vjust = 1)
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
